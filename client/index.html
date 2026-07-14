@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akili AI</title>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #000;
+            color: white;
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        body>header {
+            padding: .4em .75em;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.186);
+            height: 4rem;
+        }
+
+
+        main {
+            display: flex;
+            flex: 1;
+            height: calc(100vh - 4rem);
+
+        }
+
+        main>* {
+            height: (100vh - 4rem );
+            flex-grow: 1;
+            width: 100%;
+            padding: .4em .75em;
+        }
+
+        main div:first-child {
+            border-right: 1px solid #ffffff3e;
+        }
+
+        main>div>header {
+            display: flex;
+            align-items: center;
+            color: white;
+            gap: 2em;
+        }
+
+        main>div>header span {
+            padding: .25em .4em;
+            border-radius: .4em;
+            font-size: 1em;
+
+
+        }
+
+        .success {
+            border: 1px solid rgba(0, 128, 0, 0.4);
+            background: rgba(0, 128, 0, 0.1);
+            color: green;
+        }
+
+        .error {
+            border: 1px solid rgba(128, 0, 0, 0.4);
+            background: rgba(128, 0, 0, 0.1);
+            color: rgb(128, 0, 0);
+        }
+
+        .stale {
+            border: 1px solid rgba(116, 116, 116, 0.4);
+            background: rgba(116, 116, 116, 0.1);
+            color: rgb(116, 116, 116);
+        }
+
+        main div form {
+            display: flex;
+            flex-direction: column;
+
+            align-items: start;
+            justify-items: start;
+        }
+
+        main div form>div {
+            width: 100%;
+            display: flex;
+            align-items: start;
+            justify-items: start;
+            gap: .75em;
+
+        }
+
+        input {
+            padding: .75em;
+            border: 1px solid #ffffff3e;
+            background: #000;
+            border-radius: .5em;
+            width: 100%;
+            color: white;
+            font-size: 1em;
+            font-weight: 400;
+            outline: none;
+        }
+
+        input:focus {
+            border: 1px solid #ffffff5a;
+        }
+
+        button {
+            padding: .75em;
+            border: 1px solid #ffffff3e;
+            background: #000;
+            border-radius: .5em;
+            color: white;
+            font-size: 1em;
+            font-weight: 400;
+            text-transform: capitalize;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0000009c;
+            border: 1px solid #ffffff5a;
+        }
+
+        .message-content {
+            white-space: pre-wrap;
+            line-height: 1.6;
+            word-break: break-word;
+        }
+
+        main>div {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            /* Important */
+        }
+
+        #server-logs {
+            flex: 1;
+            min-height: 0;
+            /* Important */
+            overflow-y: auto;
+            overflow-x: hidden;
+
+            margin-top: 1rem;
+            padding-right: .5rem;
+        }
+
+        pre {
+            margin: .75rem 0;
+            padding: .75rem;
+            background: #111;
+            border: 1px solid #333;
+            border-radius: .5rem;
+            overflow-x: auto;
+        }
+
+        code {
+            font-family: ui-monospace, monospace;
+            font-size: .9rem;
+        }
+
+        .stream-message {
+            display: flex;
+            align-items: start;
+            gap: .75rem;
+            font-family: ui-monospace, monospace;
+            margin: 0.4rem 0;
+        }
+
+        .stream-message .prompt {
+            font-weight: 700;
+            width: 1ch;
+            margin-top: .2em;
+        }
+
+        .server {
+            color: white;
+        }
+
+        .server .prompt {
+            color: #3b82f6;
+        }
+
+        .client {
+            color: white;
+        }
+
+        .client .prompt {
+            color: #10b981;
+        }
+
+        .server-controls {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        #reconnect-btn {
+            padding: 0.35rem 0.7rem;
+            cursor: pointer;
+            font-size: 0.875rem;
+        }
+
+
+
+        #reconnect-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Tablet */
+        @media (max-width: 900px) {
+
+            main {
+                flex-direction: column;
+            }
+
+            main>div:first-child {
+                border-right: none;
+                border-bottom: 1px solid rgba(255, 255, 255, .15);
+            }
+        }
+
+        /* Phone */
+        @media (max-width: 600px) {
+
+            body>header h2,
+            form h2,
+            main h2 {
+                font-size: 1.2rem;
+            }
+
+            form>div {
+                flex-direction: column;
+            }
+
+            input,
+            button {
+                width: 100%;
+            }
+
+            .server-controls {
+                width: 100%;
+                justify-content: space-between;
+            }
+
+            #reconnect-btn {
+                width: auto;
+            }
+
+            main>div {
+                padding: .75rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h2>Akili AI</h2>
+    </header>
+    <main>
+        <div>
+            <form id="message-form">
+                <h2>Client</h2>
+                <div>
+                    <input type="text" id="message" name="message" placeholder="Enter message" />
+                    <button type="submit" id="btn-send">send</button>
+                </div>
+            </form>
+        </div>
+        <div>
+            <header>
+                <h2>Server</h2>
+                <div class="server-controls">
+                    <span id="server-status" class="stale">Disconnected</span>
+                    <button id="reconnect-btn" type="button">Reconnect</button>
+                </div>
+            </header>
+            <div id="server-logs">
+
+            </div>
+        </div>
+    </main>
+    <script>
+        /**
+         * @type {WebSocket | null}
+         * */
+        let socket = null;
+
+        const server = document.getElementById("server-logs")
+        const sendBtn = document.getElementById("btn-send")
+        const messageForm = document.getElementById("message-form")
+        const statusBadge = document.getElementById("server-status")
+        const reconnectBtn = document.getElementById("reconnect-btn");
+        let aiReady = false;
+
+        let loadingElement = null;
+
+        const updateLoading = (progress, message) => {
+            if (!loadingElement) {
+                loadingElement = document.createElement("div");
+                loadingElement.className = "stream-message server";
+                server.appendChild(loadingElement);
+            }
+
+            loadingElement.innerHTML = `
+                 <span class="prompt">></span>
+                 <span>${message}</span>
+                 `;
+
+            if (progress >= 100) {
+                loadingElement = null;
+            }
+        };
+
+        /**
+         * Updates the status badge.
+         * 
+         * @param {string} message - The status message.
+         * @param {"stale" | "error" | "success"} status - The status type.
+         * 
+         * */
+        const changeStatus = (message, status) => {
+            statusBadge.classList.remove("stale", "error", "success");
+            statusBadge.classList.add(status);
+            statusBadge.textContent = message;
+        };
+
+        const formatMessage = (message) => {
+            return message.replace(
+                /```(\w+)?\n([\s\S]*?)```/g,
+                (_, lang = "", code) => `<pre><code class="${lang}">${escapeHtml(code)}</code></pre>`
+            );
+        };
+
+        const escapeHtml = (text) =>
+            text
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;");
+
+        /**
+         * @param {string} message - The message to showcase.
+         * @param {"server" | "client"} source - The source of the message.
+         * @param {string} [delimiter="&gt;"] - The delimiter before the message.
+         */
+        const appendMessage = (message, source, delimiter = "&gt;") => {
+            const el = document.createElement("div");
+            el.className = `stream-message ${source}`;
+            el.title = source
+
+            const content = document.createElement("span");
+            content.className = "message-content";
+            content.innerHTML = formatMessage(message);
+
+            const arrow = document.createElement("span")
+            arrow.classList.add("prompt")
+            arrow.innerHTML = delimiter
+
+            el.append(arrow, content)
+            server.appendChild(el);
+            server.scrollTop = server.scrollHeight;
+        };
+
+
+        messageForm.addEventListener("submit", (e) => {
+            e.preventDefault()
+            if (!aiReady) {
+                appendMessage("AI is still loading...", "server");
+                return;
+            }
+
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                appendMessage("[Error] Not connected.", "server");
+                return;
+            }
+            const formData = new FormData(messageForm)
+            const message = formData.get("message")
+            appendMessage(message, "client")
+            socket.send(message)
+        })
+
+
+
+        const connect = () => {
+            if (
+                socket &&
+                (socket.readyState === WebSocket.OPEN ||
+                    socket.readyState === WebSocket.CONNECTING)
+            ) {
+                return;
+            }
+
+            socket = new WebSocket("ws://localhost:8080")
+
+
+
+            // socket.addEventListener("open", (event) => {
+            //     changeStatus("connected", "success")
+            //     // appendMessage("Waiting for a message from you :)", "server")
+            // })
+
+            socket.addEventListener("message", (event) => {
+                const data = JSON.parse(event.data);
+
+                switch (data.type) {
+                    case "loading":
+                        aiReady = false;
+                        updateLoading(data.progress, data.message);
+                        return;
+
+                    case "ready":
+                        aiReady = true;
+                        changeStatus("connected", "success");
+                        appendMessage(data.message, "server");
+                        break;
+
+                    case "response":
+                        appendMessage(data.message, "server");
+                        break;
+
+                    case "error":
+                        changeStatus("error", "error");
+                        appendMessage(data.message, "server");
+                        break;
+
+                    default:
+                        appendMessage(event.data, "server");
+                }
+            });
+
+            socket.addEventListener("error", (event) => {
+                console.log(event)
+                appendMessage("[Error] Server disconnected", "server")
+                changeStatus("disconected", "error")
+            })
+            socket.addEventListener("close", (event) => {
+                appendMessage(
+                    `[Disconnected] ${event.reason || "Connection closed"} (${event.code})`,
+                    "server"
+                );
+                changeStatus("disconnected", "stale")
+            })
+        }
+
+
+        document.addEventListener("DOMContentLoaded", connect)
+
+        reconnectBtn.addEventListener("click", () => {
+            connect(); // Your function that creates a new WebSocket
+        });
+    </script>
+</body>
+
+</html>
